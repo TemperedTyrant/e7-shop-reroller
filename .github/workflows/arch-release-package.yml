@@ -1,0 +1,82 @@
+name: Build Arch release package
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing release tag to build (for example v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+permissions:
+  contents: read
+
+jobs:
+  arch-package:
+    name: Arch Linux package
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+    steps:
+      # The release PKGBUILD lives on main: its verified archive checksum is
+      # committed after the source tag is finalized.
+      - name: Checkout release packaging
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+
+      - name: Validate tag and verified PKGBUILD
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
+            echo "::error::Expected a semantic release tag such as v1.0.0"
+            exit 1
+          }
+          version="${RELEASE_TAG#v}"
+          grep -Fxq "pkgver=$version" arch/PKGBUILD.aur.template || {
+            echo "::error::AUR PKGBUILD version does not match the release tag"
+            exit 1
+          }
+          if grep -q "REPLACE_WITH_VERIFIED_SHA256\|sha256sums=('SKIP')" arch/PKGBUILD.aur.template; then
+            echo "::error::AUR PKGBUILD must contain a verified source checksum"
+            exit 1
+          fi
+          mkdir -p "$RUNNER_TEMP/e7-arch-package"
+          cp arch/PKGBUILD.aur.template "$RUNNER_TEMP/e7-arch-package/PKGBUILD"
+
+      - name: Build and test in official Arch Linux container
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            --volume "$RUNNER_TEMP/e7-arch-package:/build" \
+            --workdir /build \
+            archlinux:base-devel \
+            bash -euo pipefail -c '
+              pacman -Syu --noconfirm --needed python python-numpy python-opencv tk
+              useradd --create-home packager
+              chown -R packager:packager /build
+              # kdotool is an AUR runtime dependency, not needed by the
+              # offline tests or package() step. Do not run AUR build scripts
+              # or install services with elevated privileges in CI.
+              runuser -u packager -- makepkg --nodeps --cleanbuild --check --noconfirm
+              runuser -u packager -- makepkg --printsrcinfo > /build/.SRCINFO
+              sha256sum /build/*.pkg.tar.zst > /build/package.sha256
+            '
+
+      - name: Upload unsigned Arch package and checksums
+        uses: actions/upload-artifact@v4
+        with:
+          name: e7-shop-reroller-${{ env.RELEASE_TAG }}-archlinux
+          path: |
+            ${{ runner.temp }}/e7-arch-package/*.pkg.tar.zst
+            ${{ runner.temp }}/e7-arch-package/package.sha256
+            ${{ runner.temp }}/e7-arch-package/.SRCINFO
+          if-no-files-found: error
+          retention-days: 30

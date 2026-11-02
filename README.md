@@ -13,9 +13,64 @@ and a resized game at approximately 1008×567 on a 4:3 desktop configuration.
 800×480 is unsupported; 1080p and Steam Deck are not yet independently verified.
 Supervise all live runs.
 
-## Local Arch installation
+## Download & Install (Arch Linux)
 
-For a local Arch build, clone the repository and run:
+**Recommended:** Install the prebuilt package from the latest
+[GitHub release](https://github.com/TemperedTyrant/e7-shop-reroller/releases/latest).
+
+**Requirements:** An x86-64 Arch Linux system using **KDE Plasma Wayland**,
+the PC edition of E7 through Steam/Proton, and a working `ydotoold` input
+daemon. Steam Deck and other desktops have not been validated.
+
+1. **Download two files** from the release page's **Assets** section:
+   - `e7-shop-reroller-1.0.0-1-x86_64.pkg.tar.zst` (the application)
+   - `package.sha256` (download verification)
+
+   Choose the package, **not** the "Source code" ZIP or tarball.
+
+2. **Install `kdotool`**, a required AUR dependency. If you use
+   [paru](https://github.com/Morganamilo/paru), run:
+
+   ```sh
+   paru -S kdotool
+   ```
+
+   If you do not have an AUR helper, install `kdotool` using your usual
+   [AUR build method](https://wiki.archlinux.org/title/Arch_User_Repository).
+
+3. **Verify the package** in the folder containing both downloads
+   (typically `~/Downloads`):
+
+   ```sh
+   cd ~/Downloads
+   sha256sum --check package.sha256
+   ```
+
+   Confirm the package reports **OK**.
+
+4. **Install the package**:
+
+   ```sh
+   sudo pacman -U ./e7-shop-reroller-1.0.0-1-x86_64.pkg.tar.zst
+   ```
+
+   Pacman resolves the other declared dependencies.
+
+5. **Complete first-run setup.** Ensure the `ydotoold` daemon is running and
+   your user can use `ydotool`. Installing the package does **not** start or
+   configure input services automatically. Open **E7 Shop Reroller** from the
+   application menu (or run `e7-shop-reroller`). Use **Window setup &
+   calibration… → Test Window Setup** before a live run, and follow the
+   on-screen guide to configure a global Pause/Resume shortcut.
+
+**Updates:** GitHub release packages are installed manually; they do not
+automatically update through pacman or an AUR helper. Download and install
+the latest release package when upgrading. The package is currently unsigned,
+so verify its checksum and download it from this project's official release page.
+
+### Build from source (optional)
+
+Developers or users who prefer local builds can use:
 
 ```sh
 sudo pacman -S --needed base-devel
@@ -25,15 +80,9 @@ cd e7-shop-reroller
 bash arch/build-local.sh
 ```
 
-The build script archives only the Linux runtime and essential files, then
-runs `makepkg -si`. It includes offline regression tests in the **build source**
-and runs them before installing; test files are not installed with the app.
-Other dependencies are managed by pacman. `ydotoold` must
-be configured separately; installation does not enable input services.
-
-Launch **E7 Shop Reroller** from the application menu, or run
-`e7-shop-reroller`. Configure your KDE shortcut to use
-`/usr/bin/e7-shop-reroller-toggle`.
+The script makes a local source archive and runs `makepkg -si`. It runs the
+offline regression tests during packaging; tests are not installed with the
+application. Input permissions and `ydotoold` still require separate setup.
 
 ## Usage
 

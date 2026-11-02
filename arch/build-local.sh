@@ -16,10 +16,9 @@ if ! command -v makepkg >/dev/null 2>&1; then
   exit 1
 fi
 
-# Source only the Linux runtime, templates, and packaging files. The original
-# Windows binaries, ADB tools and notebook are not needed in an Arch package.
+# Archive only the Linux runtime, tests, assets, and packaging files.
 tar -czf "$archive" -C "$project_dir" \
-  LICENSE README-LINUX.md \
+  LICENSE README.md \
   secret_shop_gui.py linux_shop.py run_policy.py wayland_cycle.py window_setup.py \
   continuous_capture.py pipewire_helper.py session_history.py stop_shop.py \
   tests/test_run_policy.py tests/test_window_geometry.py tests/test_recognition.py \

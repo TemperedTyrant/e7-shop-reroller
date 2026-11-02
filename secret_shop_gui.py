@@ -789,8 +789,10 @@ class App:
                        "Covenant: 0.6602509%\n"
                        "Mystic: 0.1700646%\n"
                        "Friendship: 19.1772874%\n\n"
-                       "Expected = fully reviewed shops × 6 slots × item chance.\n"
-                       "These are averages, not guaranteed results.", padding=7)
+                       "Expected = reviewed shops × chance of at least one appearance "
+                       "across 6 slots.\n\n"
+                       "Assumes each currency can be purchased at most once per shop. "
+                       "This is an estimate, not a verified game rule or guarantee.", padding=7)
         stats.pack(fill="x", pady=(0, 6))
         for column in range(3):
             stats.grid_columnconfigure(column, weight=1)
@@ -848,7 +850,7 @@ class App:
         ttk.Button(controls, text="■  End session", command=self.stop_run).pack(side="left", padx=(0, 8))
         ttk.Button(controls, text="Setup Global PAUSE/RESUME Shortcut",
                    command=self.copy_stop_command).pack(side="right")
-        ttk.Label(footer, text="Expected = reviewed shops × 6 slots × in-game odds. Purchases require sold-row confirmation, not inventory OCR.",
+        ttk.Label(footer, text="Expected = chance of at least one item per reviewed shop (max one per currency assumed). Purchases require sold-row confirmation, not inventory OCR.",
                   style="Muted.TLabel").pack(anchor="w", pady=(8, 0))
         self.root.protocol("WM_DELETE_WINDOW", self.close)
         for variable in [*self.region, self.threshold, self.delay, self.change,

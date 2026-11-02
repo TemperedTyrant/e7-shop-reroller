@@ -40,7 +40,7 @@ Plasma Wayland, the PC edition of E7 through Steam/Proton, and a working
 `ydotoold` input daemon.
 
 1. **Download two files** from the release page's **Assets** section:
-   - `e7-shop-reroller-1.0.0-1-x86_64.pkg.tar.zst` (the application)
+   - `e7-shop-reroller-1.1.0-1-x86_64.pkg.tar.zst` (the application)
    - `package.sha256` (download verification)
 
    Choose the package, **not** the "Source code" ZIP or tarball.
@@ -83,7 +83,7 @@ Plasma Wayland, the PC edition of E7 through Steam/Proton, and a working
 5. **Install the package**:
 
    ```sh
-   sudo pacman -U ./e7-shop-reroller-1.0.0-1-x86_64.pkg.tar.zst
+   sudo pacman -U ./e7-shop-reroller-1.1.0-1-x86_64.pkg.tar.zst
    ```
 
    Pacman resolves the other declared dependencies.

@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.1.0 — Unreleased
+## 1.1.0 — 2026-11-02
 
 - Human-readable elapsed time, ETA, and performance timing breakdowns.
 - Expected drop counts use a provisional at-least-one-per-shop model, assuming

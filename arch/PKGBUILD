@@ -1,8 +1,8 @@
 # Maintainer: E7 Shop Reroller contributors
 # Local-source package. Run ./arch/build-local.sh from the project first.
 pkgname=e7-shop-reroller
-pkgver=1.0.0
-pkgrel=7
+pkgver=1.1.0
+pkgrel=1
 pkgdesc='E7 shop reroller for KDE Plasma Wayland'
 arch=('x86_64')
 url='https://github.com/TemperedTyrant/e7-shop-reroller'

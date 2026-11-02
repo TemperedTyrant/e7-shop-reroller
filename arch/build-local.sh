@@ -4,7 +4,7 @@ set -euo pipefail
 package_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 project_dir="$(dirname -- "$package_dir")"
 pkgname='e7-shop-reroller'
-pkgver='1.0.0'
+pkgver='1.1.0'
 archive="${package_dir}/${pkgname}-${pkgver}.tar.gz"
 
 if ! command -v kdotool >/dev/null 2>&1; then

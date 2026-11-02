@@ -72,14 +72,16 @@ jobs:
           tag="v$VERSION"
           release_date="$(date -u +%Y-%m-%d)"
           sed -i -E "s/^pkgver=.*/pkgver=$VERSION/" arch/PKGBUILD arch/PKGBUILD.aur.template
+          sed -i -E 's/^pkgrel=.*/pkgrel=1/' arch/PKGBUILD arch/PKGBUILD.aur.template
           sed -i -E "s/^pkgver='[^']*'/pkgver='$VERSION'/" arch/build-local.sh
+          sed -i -E "s/e7-shop-reroller-[0-9]+\.[0-9]+\.[0-9]+-1-x86_64\.pkg\.tar\.zst/e7-shop-reroller-$VERSION-1-x86_64.pkg.tar.zst/g" README.md
           # The SHA256 of a GitHub tag archive cannot be embedded inside that
           # same tag; we pin it in a second main commit after the tag exists.
           sed -i -E "s/^sha256sums=.*/sha256sums=('REPLACE_WITH_VERIFIED_SHA256')/" arch/PKGBUILD.aur.template
           sed -i "s/^## $VERSION — Unreleased$/## $VERSION — $release_date/" CHANGELOG.md
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add arch/PKGBUILD arch/PKGBUILD.aur.template arch/build-local.sh CHANGELOG.md
+          git add arch/PKGBUILD arch/PKGBUILD.aur.template arch/build-local.sh CHANGELOG.md README.md
           git commit -m "Prepare E7 Shop Reroller $tag sources"
           git tag -a "$tag" -m "E7 Shop Reroller $tag"
           # Atomic push prevents a release tag from being published without

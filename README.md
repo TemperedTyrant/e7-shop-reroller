@@ -175,28 +175,40 @@ testing is still required for KWin, PipeWire, clicking, and actual game animatio
 
 ### Arch release builds (GitHub Actions)
 
-Every new `vX.Y.Z` tag triggers an Arch Linux package build using the
-verified source archive and `arch/PKGBUILD.aur.template` from `main`.
-The workflow also supports manual runs under **Actions → Build Arch release
-package → Run workflow**, including for the existing `v1.0.0` release.
+**To publish a new version**, first add its release notes to `CHANGELOG.md`
+under an unreleased heading such as `## 1.1.0 — Unreleased` and merge them
+into `main`. Then run **Actions → Prepare and publish version → Run workflow**
+from `main` and enter the version **without** `v` (for example `1.1.0`).
 
-After the package builds and offline tests pass, the workflow uploads an
-**unsigned** `.pkg.tar.zst` plus its checksum and `.SRCINFO` as an Actions
-artifact (retained for 30 days). A separate job verifies the package checksum
-and attaches the package and checksum to the matching **published GitHub
-release**. It never replaces existing release files automatically; reruns
-keep existing assets. The workflow also runs when a GitHub release is published.
-It does not publish an AUR package. Release downloads are not a pacman
-repository and do not provide automatic updates.
+The workflow updates the local and AUR package versions, commits the tagged
+source, computes the GitHub archive SHA256, and pins the verified checksum in
+a follow-up `main` commit. A second job runs the offline tests and builds the
+Arch package. **Only after the package passes verification** does it create
+and publish the GitHub release with the package and checksum attached.
+
+Release tags cannot safely contain their own archive SHA256 because that
+would change the archive hash. For that reason, use the *post-tag* pinned
+`arch/PKGBUILD.aur.template` from `main` when submitting to AUR. The tag
+itself contains the placeholder that was used before the checksum existed.
+
+The separate **Actions → Build Arch release package → Run workflow** remains
+available to rebuild an existing published release (for example `v1.0.0`).
+It also runs for independently published releases, but pushes of tags by
+themselves no longer trigger it. Rebuilds refuse to replace existing assets.
+GitHub Actions uses an **unsigned** `.pkg.tar.zst` and `package.sha256`;
+the build artifact also includes `.SRCINFO` and is retained for 30 days.
+
+The automated release requires workflow permission to create commits and tags
+on `main`. Branch rules that restrict GitHub Actions from pushing will
+prevent automated release preparation; do not bypass those protections
+silently. It does not submit to AUR. GitHub release packages are not a
+pacman repository and do not provide automatic updates.
 
 The build uses an official Arch Linux container. CI skips the check that all
 AUR runtime dependencies are installed, because `kdotool` is not in Arch's
 official repositories; the generated package retains its declared `kdotool`
 dependency. The offline tests still run with system OpenCV. A real KDE
 Wayland session is required for live end-to-end verification.
-
-For subsequent releases, update the AUR template's version and verified
-source archive checksum on `main` before starting the tagged build.
 
 ### KDE global shortcut
 

@@ -1,4 +1,4 @@
-# AUR release template: do not publish until the archive hash is verified.
+# AUR release template for the verified v1.0.0 tag archive.
 # Maintainer: E7 Shop Reroller contributors
 pkgname=e7-shop-reroller
 pkgver=1.0.0
@@ -15,8 +15,7 @@ depends=(
   'xdg-desktop-portal-kde'
 )
 source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/refs/tags/v${pkgver}.tar.gz")
-# Replace this value using the exact downloaded release archive before publishing.
-sha256sums=('REPLACE_WITH_VERIFIED_SHA256')
+sha256sums=('789139f753a3035ee97571bd308110f3fa12579939df75a035af66510e9bb7ab')
 
 check() {
   cd "${srcdir}/${pkgname}-${pkgver}"

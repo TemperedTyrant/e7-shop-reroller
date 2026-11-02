@@ -387,7 +387,7 @@ class Runner:
                 return False
             raise
         # Candidate confirmation coordinates from the upstream program.
-        # These are experimental on Steam/Proton; run live only while supervised.
+        # Supervise live runs: game animations and desktop input can vary.
         self.click((x + round(w*.55), y + round(h*.70)))
         # Poll for the actual sold row; the old dialog-dismissal change score
         # could fire early during a reward animation.

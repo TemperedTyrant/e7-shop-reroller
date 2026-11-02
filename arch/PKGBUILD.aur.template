@@ -1,4 +1,4 @@
-# AUR release template. Fill the checksum after finalizing the v1.0.0 tag.
+# AUR release template for the verified v1.0.0 source tag.
 # Maintainer: E7 Shop Reroller contributors
 pkgname=e7-shop-reroller
 pkgver=1.0.0
@@ -15,7 +15,7 @@ depends=(
   'xdg-desktop-portal-kde'
 )
 source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/refs/tags/v${pkgver}.tar.gz")
-sha256sums=('REPLACE_WITH_VERIFIED_SHA256')
+sha256sums=('391108cfae6b132926221f165aeb2746e2c028ff717d586da3b604940e70b9ae')
 
 check() {
   cd "${srcdir}/${pkgname}-${pkgver}"

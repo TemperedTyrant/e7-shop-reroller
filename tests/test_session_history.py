@@ -90,6 +90,11 @@ class SessionHistoryTest(unittest.TestCase):
         output = Path(self.directory.name) / "legacy.json"
         export_shop_details(output, "json")
         self.assertEqual(json.loads(output.read_text())["sessions"][0]["shops"], [])
+        csv_output = Path(self.directory.name) / "legacy.csv"
+        export_shop_details(csv_output, "csv")
+        with csv_output.open(newline="") as handle:
+            rows = list(csv.DictReader(handle))
+        self.assertEqual(rows[0]["outcome"], "no_shop_details_recorded")
 
 
 if __name__ == "__main__":

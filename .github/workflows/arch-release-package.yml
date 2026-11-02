@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - 'v*'
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
       tag:
@@ -20,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 35
     env:
-      RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+      RELEASE_TAG: ${{ inputs.tag || github.event.release.tag_name || github.ref_name }}
     steps:
       # The release PKGBUILD lives on main: its verified archive checksum is
       # committed after the source tag is finalized.
@@ -67,7 +69,8 @@ jobs:
               # or install services with elevated privileges in CI.
               runuser -u packager -- makepkg --nodeps --cleanbuild --check --noconfirm
               runuser -u packager -- makepkg --printsrcinfo > /build/.SRCINFO
-              sha256sum /build/*.pkg.tar.zst > /build/package.sha256
+              cd /build
+              sha256sum ./*.pkg.tar.zst > package.sha256
             '
 
       - name: Upload unsigned Arch package and checksums
@@ -81,3 +84,64 @@ jobs:
           if-no-files-found: error
           include-hidden-files: true
           retention-days: 30
+
+  publish-release:
+    name: Attach verified package to GitHub release
+    needs: arch-package
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    env:
+      RELEASE_TAG: ${{ inputs.tag || github.event.release.tag_name || github.ref_name }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Download successful Arch build
+        uses: actions/download-artifact@v7
+        with:
+          name: e7-shop-reroller-${{ env.RELEASE_TAG }}-archlinux
+          path: dist
+
+      - name: Verify checksum and published release
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd dist
+          shopt -s nullglob
+          packages=(./*.pkg.tar.zst)
+          if (( ${#packages[@]} != 1 )); then
+            echo "::error::Expected exactly one Arch package"
+            exit 1
+          fi
+          sha256sum --check package.sha256
+          draft=$(gh release view "$RELEASE_TAG" \
+            --repo "$GITHUB_REPOSITORY" --json isDraft --jq '.isDraft')
+          if [[ "$draft" != "false" ]]; then
+            echo "::error::Release $RELEASE_TAG must be published before attaching assets"
+            exit 1
+          fi
+
+      - name: Attach package and checksum without replacing existing assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd dist
+          shopt -s nullglob
+          packages=(./*.pkg.tar.zst)
+          package_name="${packages[0]#./}"
+          names=$(gh release view "$RELEASE_TAG" \
+            --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name')
+          have_package=false
+          have_checksum=false
+          if grep -Fxq "$package_name" <<< "$names"; then have_package=true; fi
+          if grep -Fxq 'package.sha256' <<< "$names"; then have_checksum=true; fi
+          if [[ "$have_package" == true && "$have_checksum" == true ]]; then
+            echo "Assets already published; retaining the existing release files."
+            exit 0
+          fi
+          if [[ "$have_package" == true || "$have_checksum" == true ]]; then
+            echo "::error::Partial release assets exist; refusing to overwrite them"
+            exit 1
+          fi
+          gh release upload "$RELEASE_TAG" "${packages[0]}" package.sha256 \
+            --repo "$GITHUB_REPOSITORY"

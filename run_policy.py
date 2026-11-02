@@ -42,9 +42,15 @@ def can_refresh(paid_refreshes, limit_mode, limit_value):
 
 
 def expected_appearances(shops_reviewed):
+    """Expected purchased offers, assuming at most one of each item per shop.
+
+    Interpret the published drop rate as a per-slot chance across six slots,
+    then count a shop only once if that currency appears in multiple rolls.
+    This model is provisional until the game's slot generation is verified.
+    """
     if shops_reviewed < 0:
         raise ValueError("Shop count must be nonnegative")
-    return {item: shops_reviewed * SLOTS_PER_SHOP * rate
+    return {item: shops_reviewed * (1 - (1 - rate) ** SLOTS_PER_SHOP)
             for item, rate in DROP_RATES.items()}
 
 

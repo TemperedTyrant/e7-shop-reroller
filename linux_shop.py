@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""KDE Wayland prototype for Solunium's Epic Seven shop templates.
+"""Read-only E7 image matching and Spectacle capture utilities.
 
-Detection is read-only by default. No purchases or refreshes are automated.
+The recognition templates originate from the project credited in README.md.
+This module performs detection only; the desktop controller handles purchases.
 """
 import argparse
 import json

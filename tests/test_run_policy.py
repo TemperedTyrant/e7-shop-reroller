@@ -52,7 +52,11 @@ class ExpectedAndScaleTest(unittest.TestCase):
         rates = {"covenant": .006602509, "mystic": .001700646,
                  "friendship": .191772874}
         for name, rate in rates.items():
-            self.assertAlmostEqual(expected_appearances(11)[name], 11 * 6 * rate)
+            self.assertAlmostEqual(expected_appearances(11)[name], 11 * (1 - (1-rate)**6))
+
+    def test_friendship_expectation_for_113_shops(self):
+        # A max-one-per-currency shop model predicts ~81.5, not ~130.
+        self.assertAlmostEqual(expected_appearances(113)["friendship"], 81.5022902, places=6)
 
     def test_scales_follow_content_width(self):
         self.assertEqual(recognition_scale(1280), 1.5)

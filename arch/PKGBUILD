@@ -1,0 +1,57 @@
+# Maintainer: E7 Shop Reroller contributors
+# LOCAL DEVELOPMENT PACKAGE ONLY. Replace URL/source/checksum before AUR.
+pkgname=e7-shop-reroller
+pkgver=1.0.0
+pkgrel=6
+pkgdesc='E7 shop reroller for KDE Plasma Wayland'
+arch=('x86_64')
+# The public project URL will be set after its GitHub repository is created.
+url='https://github.com/Solunium/Epic-Seven-E7-Secret-Shop-Refresh'
+license=('GPL-3.0-only')
+conflicts=('e7-secret-shop-linux')
+replaces=('e7-secret-shop-linux')
+depends=(
+  'python' 'tk' 'python-numpy' 'python-opencv'
+  'spectacle' 'ydotool' 'kdotool'
+  'python-dbus' 'python-gobject'
+  'gstreamer' 'gst-plugins-base' 'gst-plugin-pipewire'
+  'xdg-desktop-portal-kde'
+)
+source=("${pkgname}-${pkgver}.tar.gz")
+# Local development source; a release MUST use a pinned URL and checksum.
+sha256sums=('SKIP')
+
+check() {
+  cd "${srcdir}"
+  python -B -m unittest discover -s tests -v
+}
+
+package() {
+  local appdir="${pkgdir}/usr/share/e7-shop-reroller"
+  install -d "${appdir}" "${appdir}/assets" "${appdir}/assets/gui"
+  local script
+  for script in secret_shop_gui.py linux_shop.py run_policy.py wayland_cycle.py \
+                window_setup.py continuous_capture.py pipewire_helper.py \
+                session_history.py stop_shop.py; do
+    install -m644 "${srcdir}/${script}" "${appdir}/${script}"
+  done
+  install -m644 "${srcdir}/assets/"*.png "${appdir}/assets/"
+  install -m644 "${srcdir}/assets/gui/"*.png "${appdir}/assets/gui/"
+  install -Dm755 "${srcdir}/arch/bin/e7-shop-reroller" \
+    "${pkgdir}/usr/bin/e7-shop-reroller"
+  install -Dm755 "${srcdir}/arch/bin/e7-shop-reroller-toggle" \
+    "${pkgdir}/usr/bin/e7-shop-reroller-toggle"
+  # Compatibility wrappers preserve user-created KDE shortcuts.
+  install -Dm755 "${srcdir}/arch/bin/e7-secret-shop" \
+    "${pkgdir}/usr/bin/e7-secret-shop"
+  install -Dm755 "${srcdir}/arch/bin/e7-secret-shop-toggle" \
+    "${pkgdir}/usr/bin/e7-secret-shop-toggle"
+  install -Dm644 "${srcdir}/arch/e7-shop-reroller.desktop" \
+    "${pkgdir}/usr/share/applications/e7-shop-reroller.desktop"
+  install -Dm644 "${srcdir}/assets/gui/covenant.png" \
+    "${pkgdir}/usr/share/pixmaps/e7-shop-reroller.png"
+  install -Dm644 "${srcdir}/LICENSE" \
+    "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+  install -Dm644 "${srcdir}/README-LINUX.md" \
+    "${pkgdir}/usr/share/doc/${pkgname}/README-LINUX.md"
+}

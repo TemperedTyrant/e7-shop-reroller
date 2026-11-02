@@ -1,0 +1,2 @@
+#!/bin/sh
+exec /usr/bin/python /usr/share/e7-shop-reroller/secret_shop_gui.py "$@"

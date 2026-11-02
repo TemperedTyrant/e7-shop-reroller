@@ -1,0 +1,31 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# virtual environment
+.venv/
+
+# pyinstaller
+build/
+dist/
+*.manifest
+*.spec
+
+# E7SecretShopRefresh.py
+ShopRefreshHistory/
+ADBconfig.ini
+test/
+
+# Runtime output and local package builds
+run-history/
+cycle-diagnostics/
+shop-detection.png
+*.sqlite3
+*.sqlite3-shm
+*.sqlite3-wal
+arch/*.tar.gz
+arch/*.pkg.tar.*
+arch/pkg/
+arch/src/
+.pytest_cache/

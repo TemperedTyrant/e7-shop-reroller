@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=E7 Shop Reroller
+Comment=Secret Shop reroll assistant for KDE Plasma Wayland
+Exec=e7-shop-reroller
+Icon=e7-shop-reroller
+Terminal=false
+Categories=Game;Utility;
+StartupNotify=true

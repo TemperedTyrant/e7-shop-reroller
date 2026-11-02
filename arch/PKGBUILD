@@ -2,14 +2,12 @@
 # LOCAL DEVELOPMENT PACKAGE ONLY. Replace URL/source/checksum before AUR.
 pkgname=e7-shop-reroller
 pkgver=1.0.0
-pkgrel=6
+pkgrel=7
 pkgdesc='E7 shop reroller for KDE Plasma Wayland'
 arch=('x86_64')
 # The public project URL will be set after its GitHub repository is created.
 url='https://github.com/Solunium/Epic-Seven-E7-Secret-Shop-Refresh'
 license=('GPL-3.0-only')
-conflicts=('e7-secret-shop-linux')
-replaces=('e7-secret-shop-linux')
 depends=(
   'python' 'tk' 'python-numpy' 'python-opencv'
   'spectacle' 'ydotool' 'kdotool'
@@ -41,11 +39,6 @@ package() {
     "${pkgdir}/usr/bin/e7-shop-reroller"
   install -Dm755 "${srcdir}/arch/bin/e7-shop-reroller-toggle" \
     "${pkgdir}/usr/bin/e7-shop-reroller-toggle"
-  # Compatibility wrappers preserve user-created KDE shortcuts.
-  install -Dm755 "${srcdir}/arch/bin/e7-secret-shop" \
-    "${pkgdir}/usr/bin/e7-secret-shop"
-  install -Dm755 "${srcdir}/arch/bin/e7-secret-shop-toggle" \
-    "${pkgdir}/usr/bin/e7-secret-shop-toggle"
   install -Dm644 "${srcdir}/arch/e7-shop-reroller.desktop" \
     "${pkgdir}/usr/share/applications/e7-shop-reroller.desktop"
   install -Dm644 "${srcdir}/assets/gui/covenant.png" \

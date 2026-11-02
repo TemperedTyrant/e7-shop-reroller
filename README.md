@@ -28,9 +28,8 @@ Other dependencies are managed by pacman. `ydotoold` must
 be configured separately; installation does not enable input services.
 
 Launch **E7 Shop Reroller** from the application menu, or run
-`e7-shop-reroller`. The renamed package replaces/conflicts with the previous
-`e7-secret-shop-linux` package. Compatibility commands `e7-secret-shop` and
-`e7-secret-shop-toggle` remain available so existing KDE shortcuts still work.
+`e7-shop-reroller`. Configure your KDE shortcut to use
+`/usr/bin/e7-shop-reroller-toggle`.
 
 ## Usage
 
@@ -93,8 +92,7 @@ testing is still required for KWin, PipeWire, clicking, and actual game animatio
 
 Bind a **Command or Script** shortcut in **KDE System Settings → Keyboard →
 Shortcuts** to `/usr/bin/e7-shop-reroller-toggle`, optionally using
-`Ctrl+Alt+Shift+F12` if available. Existing bindings to
-`/usr/bin/e7-secret-shop-toggle` continue working. The shortcut toggles
+`Ctrl+Alt+Shift+F12` if available. The shortcut toggles
 Pause/Resume for an *active* session; it does not start a session.
 
 KDE supports application-provided shortcuts, but this version does not claim
@@ -102,13 +100,13 @@ or overwrite any key combinations automatically.
 
 ## Data, history and exports
 
-Existing XDG locations are deliberately retained for backward compatibility:
+User data is stored in XDG directories:
 
 | Data | Default path |
 | --- | --- |
-| Settings | `~/.config/e7-secret-shop/settings.json` |
-| Session history | `~/.local/state/e7-secret-shop/history.sqlite3` |
-| Diagnostic folders | `~/.local/state/e7-secret-shop/run-history/` |
+| Settings | `~/.config/e7-shop-reroller/settings.json` |
+| Session history | `~/.local/state/e7-shop-reroller/history.sqlite3` |
+| Diagnostic folders | `~/.local/state/e7-shop-reroller/run-history/` |
 
 The app honors XDG config/state overrides. Package upgrades preserve data.
 **Session history…** shows saved runs. Export CSV/JSON for further analysis.

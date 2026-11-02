@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 
-APP_NAME = "e7-secret-shop"
+APP_NAME = "e7-shop-reroller"
 
 
 def config_path():

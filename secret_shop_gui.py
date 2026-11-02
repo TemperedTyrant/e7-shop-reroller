@@ -1352,7 +1352,7 @@ class App:
                 self.log("Pending pause cancelled")
 
     def copy_stop_command(self):
-        installed_command = shutil.which("e7-shop-reroller-toggle") or shutil.which("e7-secret-shop-toggle")
+        installed_command = shutil.which("e7-shop-reroller-toggle")
         command = (shlex.quote(installed_command) if installed_command else
                    f"{shlex.quote(sys.executable)} {shlex.quote(str(ROOT / 'stop_shop.py'))}")
         dialog = tk.Toplevel(self.root)

@@ -27,8 +27,7 @@ tar -czf "$archive" -C "$project_dir" \
   assets/gui/covenant.png assets/gui/mystic.png \
   assets/gui/friendship.png assets/gui/skystone.png \
   arch/PKGBUILD arch/build-local.sh arch/e7-shop-reroller.desktop \
-  arch/bin/e7-shop-reroller arch/bin/e7-shop-reroller-toggle \
-  arch/bin/e7-secret-shop arch/bin/e7-secret-shop-toggle
+  arch/bin/e7-shop-reroller arch/bin/e7-shop-reroller-toggle
 
 printf 'Built local source archive: %s\n' "$archive"
 cd "$package_dir"

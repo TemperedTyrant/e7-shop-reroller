@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""One-pass top/bottom shop scanner with an opt-in Wayland drag gesture.
+"""KDE Wayland pointer control and read-only shop scanning helpers.
 
-Never buys items or spends skystones. Dry-run by default.
+The standalone CLI defaults to a dry run; the desktop controller uses these
+helpers to perform supervised actions.
 """
 import argparse
 import json

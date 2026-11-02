@@ -25,7 +25,7 @@ jobs:
       # The release PKGBUILD lives on main: its verified archive checksum is
       # committed after the source tag is finalized.
       - name: Checkout release packaging
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: main
           persist-credentials: false
@@ -71,7 +71,7 @@ jobs:
             '
 
       - name: Upload unsigned Arch package and checksums
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: e7-shop-reroller-${{ env.RELEASE_TAG }}-archlinux
           path: |

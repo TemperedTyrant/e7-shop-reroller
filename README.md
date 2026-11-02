@@ -10,19 +10,34 @@ purchases and refreshes, and records session statistics.
 published terms restrict unauthorized automation tools. Use may put your game
 account at risk; review those terms before deciding whether to use the app.
 
-**Tested:** Arch Linux, KDE Plasma Wayland, game via Steam/Proton at 1280×720
-and a resized game at approximately 1008×567 on a 4:3 desktop configuration.
-800×480 is unsupported; 1080p and Steam Deck are not yet independently verified.
-Supervise all live runs.
+## Platform compatibility
 
-## Download & Install (Arch Linux)
+E7 Shop Reroller is a **Linux application designed for KDE Plasma on Wayland**,
+not an Arch-specific application. Its Python runtime uses KDE/KWin interfaces,
+`kdotool`, `ydotool`, Spectacle, and optionally PipeWire.
 
-**Recommended:** Install the prebuilt package from the latest
+- **Tested:** Arch Linux with KDE Plasma Wayland and the PC edition of E7
+  through Steam/Proton, at 1280×720 and approximately 1008×567 game content.
+- **Packaged:** Prebuilt **x86-64 Arch Linux** package (`.pkg.tar.zst`).
+  The instructions below are for Arch Linux and Arch-based distributions.
+- **Other distributions:** KDE Wayland systems such as Fedora KDE, openSUSE,
+  or Kubuntu may be compatible, but have **not been tested or packaged**.
+  They require their own dependency setup; the Arch package cannot be
+  installed with `dnf`, `zypper`, or `apt`.
+- **Not verified:** Steam Deck/SteamOS, fractional display scaling, and 1080p
+  game setups. Displays unable to fit at least 960×540 game content plus
+  decorations are unsupported (including 800×480).
+
+Supervise all live runs. GNOME Wayland and X11 are not supported.
+
+## Download & Install (Arch Linux package)
+
+**Recommended for Arch Linux:** Install the prebuilt package from the latest
 [GitHub release](https://github.com/TemperedTyrant/e7-shop-reroller/releases/latest).
 
-**Requirements:** An x86-64 Arch Linux system using **KDE Plasma Wayland**,
-the PC edition of E7 through Steam/Proton, and a working `ydotoold` input
-daemon. Steam Deck and other desktops have not been validated.
+**Requirements:** x86-64 Arch Linux or an Arch-based distribution using KDE
+Plasma Wayland, the PC edition of E7 through Steam/Proton, and a working
+`ydotoold` input daemon.
 
 1. **Download two files** from the release page's **Assets** section:
    - `e7-shop-reroller-1.0.0-1-x86_64.pkg.tar.zst` (the application)

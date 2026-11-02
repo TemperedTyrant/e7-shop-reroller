@@ -1,5 +1,7 @@
 # E7 Shop Reroller — KDE Plasma Wayland
 
+![E7 Shop Reroller running on KDE Plasma Wayland](assets/showcase.gif)
+
 An unofficial Secret Shop reroll assistant for the PC edition of E7. It detects
 Covenant Bookmarks, Mystic Medals, and Friendship Points, automates selected
 purchases and refreshes, and records session statistics.

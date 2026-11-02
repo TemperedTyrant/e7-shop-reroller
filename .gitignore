@@ -12,11 +12,7 @@ dist/
 *.manifest
 *.spec
 
-# E7SecretShopRefresh.py
-ShopRefreshHistory/
-ADBconfig.ini
-test/
-
+# Local diagnostic artifacts
 # Runtime output and local package builds
 run-history/
 cycle-diagnostics/

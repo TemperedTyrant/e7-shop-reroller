@@ -4,6 +4,10 @@ An unofficial Secret Shop reroll assistant for the PC edition of E7. It detects
 Covenant Bookmarks, Mystic Medals, and Friendship Points, automates selected
 purchases and refreshes, and records session statistics.
 
+**Publisher notice:** This project is not endorsed by Smilegate. The game's
+published terms restrict unauthorized automation tools. Use may put your game
+account at risk; review those terms before deciding whether to use the app.
+
 **Tested:** Arch Linux, KDE Plasma Wayland, game via Steam/Proton at 1280×720
 and a resized game at approximately 1008×567 on a 4:3 desktop configuration.
 800×480 is unsupported; 1080p and Steam Deck are not yet independently verified. The project is not
@@ -12,14 +16,19 @@ and supervise all live runs.
 
 ## Local Arch installation
 
-This is a **local-source PKGBUILD**, not yet an AUR release. Run from the
-extracted project folder:
+This is a **local-source PKGBUILD**, not yet an AUR release. Clone the repository
+and run from the project folder:
 
 ```sh
 sudo pacman -S --needed base-devel
 paru -S kdotool
+git clone https://github.com/TemperedTyrant/e7-shop-reroller.git
+cd e7-shop-reroller
 bash arch/build-local.sh
 ```
+
+For private-repository access, authenticate GitHub CLI (`gh auth login`) and
+use `gh repo clone TemperedTyrant/e7-shop-reroller` instead of `git clone`.
 
 The build script archives only the Linux runtime and essential templates, then
 runs `makepkg -si`. It includes offline regression tests in the **build source**
@@ -130,8 +139,9 @@ Forked from [Solunium/Epic-Seven-E7-Secret-Shop-Refresh](https://github.com/Solu
 See `LICENSE` for source licensing. Game artwork belongs to its owners; review
 redistribution rights before publishing to AUR or other catalogs.
 
-**Not yet publication-ready:** `arch/PKGBUILD` still uses the original upstream
-URL and a local source archive with a skipped checksum. Set the new project's
-actual GitHub release URL, verify a release archive's SHA-256 hash, and update
-`.SRCINFO` before submitting to AUR. The GPL license applies to the code; it
-does not independently authorize redistribution of copyrighted game images.
+**Not yet publication-ready:** `arch/PKGBUILD` uses a local source archive with
+a skipped checksum. The AUR PKGBUILD must use a pinned release URL and verified
+SHA-256 hash, and `.SRCINFO` must be regenerated before submission. The GPL
+license applies to the code; it does not independently authorize redistribution
+of copyrighted game images. See `RELEASE_REVIEW.md` for unresolved publication
+questions.

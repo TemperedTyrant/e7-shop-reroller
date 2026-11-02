@@ -1,12 +1,11 @@
 # Maintainer: E7 Shop Reroller contributors
-# LOCAL DEVELOPMENT PACKAGE ONLY. Replace URL/source/checksum before AUR.
+# Local-source package. Run ./arch/build-local.sh from the project first.
 pkgname=e7-shop-reroller
 pkgver=1.0.0
 pkgrel=7
 pkgdesc='E7 shop reroller for KDE Plasma Wayland'
 arch=('x86_64')
-# The public project URL will be set after its GitHub repository is created.
-url='https://github.com/Solunium/Epic-Seven-E7-Secret-Shop-Refresh'
+url='https://github.com/TemperedTyrant/e7-shop-reroller'
 license=('GPL-3.0-only')
 depends=(
   'python' 'tk' 'python-numpy' 'python-opencv'

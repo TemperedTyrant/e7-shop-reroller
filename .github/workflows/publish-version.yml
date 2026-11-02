@@ -1,0 +1,141 @@
+name: Prepare and publish version
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'New version, without v (for example 1.1.0)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+# Only one release-preparation run may modify main/tag metadata at a time.
+concurrency:
+  group: e7-shop-reroller-release
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    name: Pin version, tag, and source checksum
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      VERSION: ${{ inputs.version }}
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Validate new version and release notes
+        shell: bash
+        id: version
+        run: |
+          set -euo pipefail
+          [[ "$GITHUB_REF" == 'refs/heads/main' ]] || {
+            echo '::error::Run this workflow from main only.'
+            exit 1
+          }
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
+            echo '::error::Enter a semantic version such as 1.1.0 (without v).'
+            exit 1
+          }
+          tag="v$VERSION"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "::error::Release $tag already exists."
+            exit 1
+          fi
+          if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null; then
+            echo "::notice::Existing unpublished tag $tag found; verifying and retrying its build."
+            echo 'REUSE_TAG=true' >> "$GITHUB_ENV"
+          else
+            grep -Fxq "## $VERSION — Unreleased" CHANGELOG.md || {
+              echo "::error::Add '## $VERSION — Unreleased' and release notes to CHANGELOG.md first."
+              exit 1
+            }
+          fi
+
+      - name: Commit release version and create immutable tag
+        shell: bash
+        if: env.REUSE_TAG != 'true'
+        run: |
+          set -euo pipefail
+          tag="v$VERSION"
+          release_date="$(date -u +%Y-%m-%d)"
+          sed -i -E "s/^pkgver=.*/pkgver=$VERSION/" arch/PKGBUILD arch/PKGBUILD.aur.template
+          sed -i -E 's/^pkgrel=.*/pkgrel=1/' arch/PKGBUILD arch/PKGBUILD.aur.template
+          sed -i -E "s/^pkgver='[^']*'/pkgver='$VERSION'/" arch/build-local.sh
+          sed -i -E "s/e7-shop-reroller-[0-9]+\.[0-9]+\.[0-9]+-1-x86_64\.pkg\.tar\.zst/e7-shop-reroller-$VERSION-1-x86_64.pkg.tar.zst/g" README.md
+          # The SHA256 of a GitHub tag archive cannot be embedded inside that
+          # same tag; we pin it in a second main commit after the tag exists.
+          sed -i -E "s/^sha256sums=.*/sha256sums=('REPLACE_WITH_VERIFIED_SHA256')/" arch/PKGBUILD.aur.template
+          sed -i "s/^## $VERSION — Unreleased$/## $VERSION — $release_date/" CHANGELOG.md
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add arch/PKGBUILD arch/PKGBUILD.aur.template arch/build-local.sh CHANGELOG.md README.md
+          git commit -m "Prepare E7 Shop Reroller $tag sources"
+          git tag -a "$tag" -m "E7 Shop Reroller $tag"
+          # Atomic push prevents a release tag from being published without
+          # its corresponding source commit on main.
+          git push --atomic origin HEAD:main "refs/tags/$tag"
+
+      - name: Verify tagged source archive and pin checksum on main
+        shell: bash
+        if: env.REUSE_TAG != 'true'
+        run: |
+          set -euo pipefail
+          tag="v$VERSION"
+          archive="${RUNNER_TEMP}/e7-shop-reroller-$VERSION.tar.gz"
+          url="https://github.com/${GITHUB_REPOSITORY}/archive/refs/tags/$tag.tar.gz"
+          curl --fail --location --retry 8 --retry-all-errors \
+            --retry-delay 3 --output "$archive" "$url"
+          tar -tzf "$archive" >/dev/null
+          checksum="$(sha256sum "$archive" | cut -d' ' -f1)"
+          [[ "$checksum" =~ ^[0-9a-f]{64}$ ]] || exit 1
+          sed -i -E "s/^sha256sums=.*/sha256sums=('$checksum')/" arch/PKGBUILD.aur.template
+          git add arch/PKGBUILD.aur.template
+          git commit -m "Pin verified $tag source archive checksum"
+          git push origin HEAD:main
+
+      - name: Verify existing tag and pinned checksum before retrying
+        if: env.REUSE_TAG == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="v$VERSION"
+          # Never reassign a published or existing tag. Only resume a previous
+          # attempt if its archive is already covered by a pinned checksum.
+          git fetch origin "refs/tags/$tag:refs/tags/$tag"
+          git merge-base --is-ancestor "$tag^{commit}" origin/main || {
+            echo "::error::Existing tag $tag is not reachable from main."
+            exit 1
+          }
+          grep -Fxq "pkgver=$VERSION" arch/PKGBUILD.aur.template || exit 1
+          archive="${RUNNER_TEMP}/e7-shop-reroller-$VERSION.tar.gz"
+          curl --fail --location --retry 8 --retry-all-errors --retry-delay 3 \
+            --output "$archive" \
+            "https://github.com/${GITHUB_REPOSITORY}/archive/refs/tags/$tag.tar.gz"
+          checksum="$(sha256sum "$archive" | cut -d' ' -f1)"
+          grep -Fxq "sha256sums=('$checksum')" arch/PKGBUILD.aur.template || {
+            echo '::error::Cannot retry: the release source checksum is not pinned on main.'
+            exit 1
+          }
+
+  release:
+    name: Build, verify, and publish Arch release
+    needs: prepare
+    permissions:
+      contents: write
+    uses: ./.github/workflows/arch-release-package.yml
+    with:
+      tag: ${{ needs.prepare.outputs.tag }}
+      publish_new_release: true

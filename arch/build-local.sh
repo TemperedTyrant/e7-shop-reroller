@@ -22,6 +22,7 @@ tar -czf "$archive" -C "$project_dir" \
   secret_shop_gui.py linux_shop.py run_policy.py wayland_cycle.py window_setup.py \
   continuous_capture.py pipewire_helper.py session_history.py stop_shop.py \
   tests/test_run_policy.py tests/test_window_geometry.py tests/test_recognition.py \
+  tests/test_session_history.py \
   assets/cov.png assets/mys.png assets/fb.png \
   assets/gui/covenant.png assets/gui/mystic.png \
   assets/gui/friendship.png assets/gui/skystone.png \
@@ -30,4 +31,4 @@ tar -czf "$archive" -C "$project_dir" \
 
 printf 'Built local source archive: %s\n' "$archive"
 cd "$package_dir"
-makepkg -si
+makepkg --cleanbuild --force -si

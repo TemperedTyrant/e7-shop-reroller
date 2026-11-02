@@ -219,16 +219,32 @@ User data is stored in XDG directories:
 | Diagnostic folders | `~/.local/state/e7-shop-reroller/run-history/` |
 
 The app honors XDG config/state overrides. Package upgrades preserve data.
-**Session history…** shows saved runs. Export CSV/JSON for further analysis.
-**Clear history & data…** lets you separately remove session records, diagnostic
-folders, or reset preferences. Deletion needs confirmation and cannot run during
-an active session.
+**Session history…** lists saved runs. The existing **Export CSV/JSON** buttons
+save one summary per run, including actual and expected counts for all three
+currencies.
+
+**Planned for v1.1:** Double-click a run (or select **View details**) to view
+its shop-by-shop results. New sessions store confirmed purchases, detected offers
+and their outcomes, scan durations, and refresh durations. **Detailed CSV/JSON**
+exports include shop information for all runs; the individual details window can
+export only the selected run. CSV has one row per detected offer and a placeholder
+row for empty shops; JSON nests shops and offers within their session.
+
+The SQLite upgrade preserves old summaries, but runs recorded before v1.1 have
+no shop-level data. Their previously saved expected counts are not recalculated.
+**Clear history & data…** lets you separately remove session records (including
+shop details), diagnostic folders, or preferences. Deletion needs confirmation
+and cannot run during an active session.
 
 Performance statistics show elapsed time, refreshes/minute, frame count and
-capture/recognition/cursor/scroll/waiting totals. Expected item counts are
-calculated as six slots per shop times in-game Level 13 rates: Covenant
-0.6602509%, Mystic 0.1700646%, Friendship 19.1772874%. These are statistical
-expectations, not guarantees.
+capture/recognition/cursor/scroll/waiting totals, with display units adapting
+automatically from seconds to minutes to hours. Raw export timings remain seconds.
+
+Expected item counts use the published Level 13 per-slot rates (Covenant
+0.6602509%, Mystic 0.1700646%, Friendship 19.1772874%) and the **provisional**
+probability of at least one occurrence across six slots:
+shops × (1 - (1 - rate)^6). This assumes at most one offer per currency per
+shop and is not a confirmed game-generation rule or a guarantee.
 
 ## Source and licensing
 

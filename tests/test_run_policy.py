@@ -1,7 +1,27 @@
 """Offline accounting rules, without a game, GUI, or mouse access."""
 import unittest
 
-from run_policy import can_refresh, expected_appearances, recognition_scale
+from run_policy import can_refresh, expected_appearances, recognition_scale, format_duration
+
+
+class DurationFormattingTest(unittest.TestCase):
+    def test_switches_units_at_minutes_and_hours(self):
+        self.assertEqual(format_duration(0), "0s")
+        self.assertEqual(format_duration(59), "59s")
+        self.assertEqual(format_duration(60), "1m 00s")
+        self.assertEqual(format_duration(551), "9m 11s")
+        self.assertEqual(format_duration(3600), "1h 00m 00s")
+        self.assertEqual(format_duration(12083), "3h 21m 23s")
+
+    def test_fractional_breakdown_and_rounding(self):
+        self.assertEqual(format_duration(23.1, 1), "23.1s")
+        self.assertEqual(format_duration(190.9, 1), "3m 10.9s")
+        self.assertEqual(format_duration(59.96, 1), "1m 00.0s")
+
+    def test_invalid_duration(self):
+        for value in (-1, float("nan"), float("inf")):
+            with self.subTest(value=value), self.assertRaises(ValueError):
+                format_duration(value)
 
 
 class RefreshLimitsTest(unittest.TestCase):
@@ -32,7 +52,11 @@ class ExpectedAndScaleTest(unittest.TestCase):
         rates = {"covenant": .006602509, "mystic": .001700646,
                  "friendship": .191772874}
         for name, rate in rates.items():
-            self.assertAlmostEqual(expected_appearances(11)[name], 11 * 6 * rate)
+            self.assertAlmostEqual(expected_appearances(11)[name], 11 * (1 - (1-rate)**6))
+
+    def test_friendship_expectation_for_113_shops(self):
+        # A max-one-per-currency shop model predicts ~81.5, not ~130.
+        self.assertAlmostEqual(expected_appearances(113)["friendship"], 81.5022902, places=6)
 
     def test_scales_follow_content_width(self):
         self.assertEqual(recognition_scale(1280), 1.5)

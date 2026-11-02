@@ -1,9 +1,33 @@
 """Pure accounting and recognition-size rules; safe to test without a GUI."""
 
+import math
+
 DROP_RATES = {"covenant": 0.006602509, "mystic": 0.001700646,
               "friendship": 0.191772874}
 SLOTS_PER_SHOP = 6
 SKYSTONES_PER_REFRESH = 3
+
+
+def format_duration(seconds, decimals=0):
+    """Present seconds as seconds, minutes/seconds, or hours/minutes/seconds.
+
+    Duration values remain in seconds internally for performance calculations
+    and data exports. Round once before splitting to avoid displaying 60s.
+    """
+    if not math.isfinite(seconds) or seconds < 0:
+        raise ValueError("Duration must be a finite nonnegative number")
+    if decimals < 0 or decimals > 3:
+        raise ValueError("Duration precision must be between 0 and 3")
+    rounded = round(seconds, decimals)
+    hours = int(rounded // 3600)
+    minutes = int((rounded % 3600) // 60)
+    remaining = rounded - hours * 3600 - minutes * 60
+    seconds_width = 2 + (decimals + 1 if decimals else 0)
+    if hours:
+        return f"{hours}h {minutes:02d}m {remaining:0{seconds_width}.{decimals}f}s"
+    if minutes:
+        return f"{minutes}m {remaining:0{seconds_width}.{decimals}f}s"
+    return f"{remaining:.{decimals}f}s"
 
 
 def can_refresh(paid_refreshes, limit_mode, limit_value):

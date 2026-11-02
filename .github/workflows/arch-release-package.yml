@@ -162,7 +162,7 @@ jobs:
             gh release create "$RELEASE_TAG" "${packages[0]}" package.sha256 \
               --repo "$GITHUB_REPOSITORY" \
               --title "E7 Shop Reroller $RELEASE_TAG" \
-              --notes-file release-notes.md --draft
+              --notes-file release-notes.md --verify-tag --draft
             gh release edit "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --draft=false
             exit 0
           fi

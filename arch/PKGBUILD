@@ -44,6 +44,6 @@ package() {
     "${pkgdir}/usr/share/pixmaps/e7-shop-reroller.png"
   install -Dm644 "${srcdir}/LICENSE" \
     "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
-  install -Dm644 "${srcdir}/README-LINUX.md" \
-    "${pkgdir}/usr/share/doc/${pkgname}/README-LINUX.md"
+  install -Dm644 "${srcdir}/README.md" \
+    "${pkgdir}/usr/share/doc/${pkgname}/README.md"
 }

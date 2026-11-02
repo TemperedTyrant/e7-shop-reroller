@@ -145,7 +145,7 @@ source available when distributing derivatives. The license does not grant
 rights to third-party game artwork or endorse the use of automation.
 
 `arch/PKGBUILD` is the **local development build** and intentionally uses a
-local archive and `SKIP` checksum. For the tagged v1.0.0 source archive use
-`arch/PKGBUILD.aur.template`, which contains the verified SHA-256 checksum.
+local archive and `SKIP` checksum. For a tagged source archive, use `arch/PKGBUILD.aur.template` from the
+current `main` branch after its checksum is verified against the final tag.
 Copy it to `PKGBUILD` when preparing an AUR submission and generate `.SRCINFO`
 with `makepkg --printsrcinfo > .SRCINFO`.

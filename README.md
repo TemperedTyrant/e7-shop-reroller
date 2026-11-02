@@ -27,9 +27,6 @@ cd e7-shop-reroller
 bash arch/build-local.sh
 ```
 
-For private-repository access, authenticate GitHub CLI (`gh auth login`) and
-use `gh repo clone TemperedTyrant/e7-shop-reroller` instead of `git clone`.
-
 The build script archives only the Linux runtime and essential templates, then
 runs `makepkg -si`. It includes offline regression tests in the **build source**
 and runs them before installing; test files are not installed with the app.

@@ -92,6 +92,28 @@ tests require OpenCV; if missing, they report **skipped**. A GitHub Actions job
 installs these dependencies before running the complete suite. Manual live
 testing is still required for KWin, PipeWire, clicking, and actual game animations.
 
+### Arch release builds (GitHub Actions)
+
+Every new `vX.Y.Z` tag triggers an Arch Linux package build using the
+verified source archive and `arch/PKGBUILD.aur.template` from `main`.
+The workflow also supports manual runs under **Actions → Build Arch release
+package → Run workflow**, including for the existing `v1.0.0` release.
+
+After the package builds and offline tests pass, the workflow uploads an
+**unsigned**, downloadable `.pkg.tar.zst` plus a checksum and `.SRCINFO`
+as a workflow artifact (retained for 30 days). It does **not** automatically
+modify the GitHub release or publish an AUR package. GitHub Actions artifacts
+are not a pacman repository and do not provide automatic updates.
+
+The build uses an official Arch Linux container. CI skips the check that all
+AUR runtime dependencies are installed, because `kdotool` is not in Arch's
+official repositories; the generated package retains its declared `kdotool`
+dependency. The offline tests still run with system OpenCV. A real KDE
+Wayland session is required for live end-to-end verification.
+
+For subsequent releases, update the AUR template's version and verified
+source archive checksum on `main` before starting the tagged build.
+
 ### KDE global shortcut
 
 Bind a **Command or Script** shortcut in **KDE System Settings → Keyboard →

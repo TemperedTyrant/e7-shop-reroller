@@ -21,7 +21,7 @@ from wayland_cycle import drag, position_cursor, scan, ydo
 from linux_shop import capture, detect
 from window_setup import setup_window
 from run_policy import (DROP_RATES, SLOTS_PER_SHOP, can_refresh,
-                        expected_appearances, recognition_scale)
+                        expected_appearances, recognition_scale, format_duration)
 from session_history import (load_settings, save_settings, record_session, totals,
                              sessions, export_sessions, clear_sessions,
                              run_history_dir, active_run_path)
@@ -1194,15 +1194,15 @@ class App:
                                     text="▶  RESUME" if paused else "Ⅱ  PAUSE")
         if self.active_runner is not None:
             perf = self.active_runner.performance_snapshot()
-            eta = (f'{perf["remaining"]:.0f}s' if perf["remaining"] is not None else
+            eta = (format_duration(perf["remaining"]) if perf["remaining"] is not None else
                    ('—' if perf['refreshes'] == 0 else '0s'))
             self.perf_main.configure(
-                text=f'Elapsed: {perf["elapsed"]:.0f}s  ·  '
+                text=f'Elapsed: {format_duration(perf["elapsed"])}  ·  '
                      f'Refreshes/min: {perf["rate"]:.2f}  ·  '
                      f'ETA: {eta}  ·  Frames: {perf["frames"]}')
             timings = perf["timings"]
             self.perf_breakdown.configure(
-                text='  ·  '.join(f'{name.title()}: {timings[name]:.1f}s' for name in
+                text='  ·  '.join(f'{name.title()}: {format_duration(timings[name], 1)}' for name in
                                  ('capture', 'matching', 'cursor', 'scroll', 'waiting')))
         while self.region_updates:
             geometry = self.region_updates.pop(0)

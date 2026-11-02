@@ -23,7 +23,8 @@ from window_setup import setup_window
 from run_policy import (DROP_RATES, SLOTS_PER_SHOP, can_refresh,
                         expected_appearances, recognition_scale, format_duration)
 from session_history import (load_settings, save_settings, record_session, totals,
-                             sessions, export_sessions, clear_sessions,
+                             sessions, session_shops, export_sessions, export_shop_details,
+                             clear_sessions,
                              run_history_dir, active_run_path)
 
 
@@ -106,6 +107,8 @@ class Runner:
         self.frames_captured = 0
         self.history_id = uuid.uuid4().hex
         self.started_utc = None
+        self.shop_details = []
+        self.shop_events = []
 
     def publish_stats(self):
         self.on_stats({"shops": self.shops_reviewed, "counts": self.counts.copy(),
@@ -365,6 +368,9 @@ class Runner:
         if not (x + .82 * w < target[0] < x + .98 * w and y + .06*h < target[1] < y + .94*h):
             raise RuntimeError(f"Unsafe Buy position for {item}: {target}")
         self.log(f"{phase}: {item} confidence={hit['confidence']} at {target}")
+        event = {"phase": phase, "item": item, "confidence": hit["confidence"],
+                 "outcome": "detected"}
+        self.shop_events.append(event)
         if not self.s["live"]:
             return False
         # Check every shop, including after a manual Resume. This prevents
@@ -372,10 +378,13 @@ class Runner:
         state, brightness = self.buy_button_state(before, target)
         self.log(f"{item}: Buy state={state} (label brightness={brightness:.0f})")
         if state == "sold":
+            event["outcome"] = "already_sold"
             self.log(f"{item}: already purchased (0/1); skipping")
             return False
         if state == "uncertain":
+            event["outcome"] = "uncertain_state"
             raise RuntimeError(f"Unable to verify Buy button availability for {item}")
+        event["outcome"] = "purchase_pending"
         self.save_frame(f"before-buy-{phase}-{item}", before)
         self.click(target)
         try:
@@ -383,11 +392,12 @@ class Runner:
         except RuntimeError:
             state, brightness = self.buy_button_state(self.latest_frame, target)
             if state == "sold":
+                event["outcome"] = "already_sold"
                 self.log(f"{item}: no dialog and disabled Buy button detected (brightness={brightness:.0f}); skipping")
                 return False
             raise
         # Candidate confirmation coordinates from the upstream program.
-        # Supervise live runs: game animations and desktop input can vary.
+        # These are experimental on Steam/Proton; run live only while supervised.
         self.click((x + round(w*.55), y + round(h*.70)))
         # Poll for the actual sold row; the old dialog-dismissal change score
         # could fire early during a reward animation.
@@ -400,6 +410,7 @@ class Runner:
             if measured != self.s["region"]:
                 raise RuntimeError("Window geometry changed during purchase intervention")
         self.counts[item] += 1
+        event["outcome"] = "purchased"
         self.publish_stats()
         self.log(f"{item}: purchase counted only after row sold verification")
         return True
@@ -434,6 +445,9 @@ class Runner:
                           and abs(v["desktop_y"] - hit["desktop_y"]) <= 15
                           and .40*w < v["x"] < .54*w), None)
             if match is None:
+                self.shop_events.append({"phase": name, "item": hit["item"],
+                                         "confidence": hit["confidence"],
+                                         "outcome": "unverified_detection"})
                 self.log(f"{name}: {hit['item']} not stable on batch recheck; skipping unverified row")
                 continue
             targets.append(match)
@@ -457,6 +471,9 @@ class Runner:
                     self.pause(0.25)
                     before = self.raw(f"{name}-retry-{index}-{retry}")
                 else:
+                    self.shop_events.append({"phase": name, "item": hit["item"],
+                                             "confidence": hit["confidence"],
+                                             "outcome": "row_not_visible_before_purchase"})
                     raise RuntimeError(f"{hit['item']} row not visible before queued purchase; stopped safely")
             self.purchase(hit, name, before=before)
 
@@ -541,6 +558,10 @@ class Runner:
                 if self.loop_started_at is None:
                     self.loop_started_at = time.monotonic()
                 self.cycle_id += 1
+                shop_started = time.monotonic()
+                purchased_before = {item: self.counts[item]
+                                    for item in ("covenant", "mystic", "friendship")}
+                self.shop_events = []
                 self.log(f"Shop {self.cycle_id} scan started (paid refreshes: {self.counts['refreshes']})")
                 while True:
                     self.checkpoint()
@@ -569,6 +590,17 @@ class Runner:
                             raise RuntimeError("Window geometry changed during shop recovery")
                         self.log("Rescanning current shop after manual intervention (no refresh sent)")
                 self.shops_reviewed += 1
+                self.shop_details.append({
+                    "shop_number": self.cycle_id,
+                    "paid_refreshes_before": self.counts["refreshes"],
+                    "elapsed_seconds": round(time.monotonic() - self.started_at, 3),
+                    "duration_seconds": round(time.monotonic() - shop_started, 3),
+                    "purchased": {item: self.counts[item] - purchased_before[item]
+                                  for item in purchased_before},
+                    "offers": list(self.shop_events),
+                    "refresh_duration_seconds": None,
+                    "refresh_outcome": "not_requested",
+                })
                 self.publish_stats()
                 self.log(f"Shop {self.cycle_id} fully reviewed")
                 if self.s["limit_mode"] == "refreshes" and not can_refresh(
@@ -579,12 +611,15 @@ class Runner:
                         self.counts["refreshes"], "skystones", self.s["limit_value"]):
                     self.log("Skystone budget reached; final shop reviewed without another refresh")
                     break
+                refresh_started = time.monotonic()
                 try:
                     self.checkpoint()
                     self.refresh()
+                    self.shop_details[-1]["refresh_outcome"] = "completed"
                 except Cancelled:
                     raise
                 except Exception as err:
+                    self.shop_details[-1]["refresh_outcome"] = "uncertain"
                     self.intervene(
                         f"Refresh outcome uncertain: {type(err).__name__}: {err}. "
                         "Check the game manually. Resume ONLY after ensuring the refresh "
@@ -594,8 +629,11 @@ class Runner:
                     if measured != self.s["region"]:
                         raise RuntimeError("Window geometry changed during refresh recovery")
                     self.counts["refreshes"] += 1
+                    self.shop_details[-1]["refresh_outcome"] = "manual_acknowledgment"
                     self.publish_stats()
                     self.log("Manually acknowledged refresh counted (3 Skystones); no retry click sent")
+                self.shop_details[-1]["refresh_duration_seconds"] = round(
+                    time.monotonic() - refresh_started, 3)
                 self.log(f"Refresh {self.counts['refreshes']} completed; "
                          f"spent {self.counts['refreshes']*3} Skystones")
                 self.pause(self.s["delay"])
@@ -619,6 +657,7 @@ class Runner:
                 self.stream.close()
                 self.stream = None
             summary = {**self.counts, "shops_reviewed": self.shops_reviewed,
+                       "shops": self.shop_details,
                        "expected": {item: round(value, 3)
                                     for item, value in expected_appearances(self.shops_reviewed).items()},
                        "performance": perf}
@@ -627,7 +666,7 @@ class Runner:
                 record_session(self.history_id, self.started_utc, status, self.s,
                                {"counts": self.counts, "shops_reviewed": self.shops_reviewed,
                                 "expected": expected_appearances(self.shops_reviewed),
-                                "performance": perf})
+                                "performance": perf, "shops": self.shop_details})
             except Exception as err:
                 self.log(f"Session history could not be saved: {err}")
             marker = active_run_path()
@@ -919,20 +958,96 @@ class App:
         except Exception as err:
             self.lifetime_label.configure(text=f"Session history unavailable: {err}")
 
-    def export_history(self, fmt):
+    def export_history(self, fmt, detailed=False, session_id=None):
         extension = ".csv" if fmt == "csv" else ".json"
         path = filedialog.asksaveasfilename(
-            parent=self.root, title=f"Export session history ({fmt.upper()})",
-            defaultextension=extension, initialfile=f"e7-shop-history{extension}",
+            parent=self.root, title=f"Export {'shop details' if detailed else 'session history'} ({fmt.upper()})",
+            defaultextension=extension,
+            initialfile=f"e7-shop-{'details' if detailed else 'history'}{extension}",
             filetypes=[("CSV files", "*.csv")] if fmt == "csv" else [("JSON files", "*.json")])
         if not path:
             return
         try:
-            count = export_sessions(path, fmt)
+            count = (export_shop_details(path, fmt, session_id=session_id) if detailed
+                     else export_sessions(path, fmt))
         except Exception as err:
             messagebox.showerror("Export failed", str(err), parent=self.root)
         else:
             messagebox.showinfo("Export complete", f"Exported {count} sessions to:\n{path}", parent=self.root)
+
+    def open_session_details(self, record):
+        try:
+            shops = session_shops(record["session_id"])
+        except Exception as err:
+            messagebox.showerror("Session details", str(err), parent=self.root)
+            return
+        dialog = tk.Toplevel(self.root)
+        dialog.title("E7 Shop Reroller · Session details")
+        dialog.geometry("1080x670")
+        dialog.minsize(740, 450)
+        panel = ttk.Frame(dialog, padding=12)
+        panel.pack(fill="both", expand=True)
+        ttk.Label(panel, text=f'{record["started_utc"]}  ·  {record["status"]}  ·  '
+                              f'{record["shops_reviewed"]} shops reviewed',
+                  style="Section.TLabel").pack(anchor="w", pady=(0, 8))
+        ttk.Label(panel, text='Purchased / expected:  '
+                              f'C {record["covenant_bought"]} / {record["covenant_expected"]:.2f}   ·   '
+                              f'M {record["mystic_bought"]} / {record["mystic_expected"]:.2f}   ·   '
+                              f'F {record["friendship_bought"]} / {record["friendship_expected"]:.2f}',
+                  style="Muted.TLabel").pack(anchor="w", pady=(0, 10))
+        if not shops:
+            ttk.Label(panel, text="No shop-level records saved for this session. "
+                                  "Older runs cannot be reconstructed from summary history.",
+                      style="Muted.TLabel").pack(anchor="w")
+
+        shop_columns = ("shop_number", "duration_seconds", "covenant_bought",
+                        "mystic_bought", "friendship_bought", "refresh_outcome",
+                        "refresh_duration_seconds")
+        shop_table = ttk.Treeview(panel, columns=shop_columns, show="headings", height=9)
+        for column, label, width in zip(shop_columns,
+                                        ("Shop", "Scan seconds", "C", "M", "F", "Refresh", "Refresh seconds"),
+                                        (65, 120, 60, 60, 60, 170, 140)):
+            shop_table.heading(column, text=label)
+            shop_table.column(column, width=width, anchor="center")
+        shop_table.pack(fill="both", expand=True)
+        by_number = {shop["shop_number"]: shop for shop in shops}
+        for shop in shops:
+            shop_table.insert("", "end", iid=str(shop["shop_number"]), values=(
+                shop["shop_number"], f'{shop["duration_seconds"]:.1f}',
+                shop["covenant_bought"], shop["mystic_bought"], shop["friendship_bought"],
+                shop["refresh_outcome"],
+                (f'{shop["refresh_duration_seconds"]:.1f}'
+                 if shop["refresh_duration_seconds"] is not None else "—")))
+
+        ttk.Label(panel, text="Detected offers in selected shop", style="Section.TLabel").pack(
+            anchor="w", pady=(12, 4))
+        offer_columns = ("phase", "item", "confidence", "outcome")
+        offer_table = ttk.Treeview(panel, columns=offer_columns, show="headings", height=5)
+        for column, label in zip(offer_columns, ("Shop half", "Item", "Confidence", "Result")):
+            offer_table.heading(column, text=label)
+            offer_table.column(column, width=180, anchor="w")
+        offer_table.pack(fill="both", expand=True)
+
+        def show_offers(_event=None):
+            offer_table.delete(*offer_table.get_children())
+            selection = shop_table.selection()
+            if not selection:
+                return
+            for offer in by_number[int(selection[0])]["offers"]:
+                offer_table.insert("", "end", values=(offer.get("phase", ""),
+                    offer.get("item", ""), offer.get("confidence", ""), offer.get("outcome", "")))
+
+        shop_table.bind("<<TreeviewSelect>>", show_offers)
+        if shops:
+            shop_table.selection_set(str(shops[0]["shop_number"]))
+            show_offers()
+        controls = ttk.Frame(panel)
+        controls.pack(fill="x", pady=(12, 0))
+        ttk.Button(controls, text="Export this session CSV",
+                   command=lambda: self.export_history("csv", True, record["session_id"])).pack(side="left")
+        ttk.Button(controls, text="Export this session JSON",
+                   command=lambda: self.export_history("json", True, record["session_id"])).pack(side="left", padx=8)
+        ttk.Button(controls, text="Close", command=dialog.destroy).pack(side="right")
 
     def open_session_history(self):
         try:
@@ -956,19 +1071,29 @@ class App:
             table.heading(column, text=label)
             table.column(column, width=190 if column == "started_utc" else 90,
                          anchor="w" if column in ("started_utc", "status") else "center")
+        by_id = {row["session_id"]: row for row in records}
         for row in records:
-            table.insert("", "end", values=[f'{row[column]:.1f}' if column == "elapsed_seconds"
-                                                 else row[column] for column in columns])
+            table.insert("", "end", iid=row["session_id"], values=[
+                f'{row[column]:.1f}' if column == "elapsed_seconds" else row[column]
+                for column in columns])
         scrollbar = ttk.Scrollbar(frame, orient="vertical", command=table.yview)
         table.configure(yscrollcommand=scrollbar.set)
         scrollbar.pack(side="right", fill="y")
         table.pack(fill="both", expand=True)
+        def show_selected_details(_event=None):
+            selected = table.selection()
+            if selected:
+                self.open_session_details(by_id[selected[0]])
+        table.bind("<Double-1>", show_selected_details)
         controls = ttk.Frame(frame)
         controls.pack(fill="x", pady=(10, 0))
-        ttk.Label(controls, text=f"{len(records)} saved sessions (including stopped and test runs)",
+        ttk.Label(controls, text=f"{len(records)} sessions (double-click for details)",
                   style="Muted.TLabel").pack(side="left")
         ttk.Button(controls, text="Export CSV", command=lambda: self.export_history("csv")).pack(side="right", padx=(8, 0))
         ttk.Button(controls, text="Export JSON", command=lambda: self.export_history("json")).pack(side="right")
+        ttk.Button(controls, text="Detailed CSV", command=lambda: self.export_history("csv", True)).pack(side="right", padx=(8, 0))
+        ttk.Button(controls, text="Detailed JSON", command=lambda: self.export_history("json", True)).pack(side="right")
+        ttk.Button(controls, text="View details", command=show_selected_details).pack(side="right", padx=(8, 0))
         ttk.Button(controls, text="Clear history & data…", command=lambda: self.open_clear_data(dialog)).pack(side="right", padx=(0, 8))
 
     def section_frame(self, parent, title, description, padding):

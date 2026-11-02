@@ -1,0 +1,50 @@
+# AUR release template: do not publish until the archive hash is verified.
+# Maintainer: E7 Shop Reroller contributors
+pkgname=e7-shop-reroller
+pkgver=1.0.0
+pkgrel=1
+pkgdesc='E7 shop reroller for KDE Plasma Wayland'
+arch=('x86_64')
+url='https://github.com/TemperedTyrant/e7-shop-reroller'
+license=('GPL-3.0-only')
+depends=(
+  'python' 'tk' 'python-numpy' 'python-opencv'
+  'spectacle' 'ydotool' 'kdotool'
+  'python-dbus' 'python-gobject'
+  'gstreamer' 'gst-plugins-base' 'gst-plugin-pipewire'
+  'xdg-desktop-portal-kde'
+)
+source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/refs/tags/v${pkgver}.tar.gz")
+# Replace this value using the exact downloaded release archive before publishing.
+sha256sums=('REPLACE_WITH_VERIFIED_SHA256')
+
+check() {
+  cd "${srcdir}/${pkgname}-${pkgver}"
+  python -B -m unittest discover -s tests -v
+}
+
+package() {
+  local source_root="${srcdir}/${pkgname}-${pkgver}"
+  local appdir="${pkgdir}/usr/share/e7-shop-reroller"
+  install -d "${appdir}" "${appdir}/assets" "${appdir}/assets/gui"
+  local script
+  for script in secret_shop_gui.py linux_shop.py run_policy.py wayland_cycle.py \
+                window_setup.py continuous_capture.py pipewire_helper.py \
+                session_history.py stop_shop.py; do
+    install -m644 "${source_root}/${script}" "${appdir}/${script}"
+  done
+  install -m644 "${source_root}/assets/"*.png "${appdir}/assets/"
+  install -m644 "${source_root}/assets/gui/"*.png "${appdir}/assets/gui/"
+  install -Dm755 "${source_root}/arch/bin/e7-shop-reroller" \
+    "${pkgdir}/usr/bin/e7-shop-reroller"
+  install -Dm755 "${source_root}/arch/bin/e7-shop-reroller-toggle" \
+    "${pkgdir}/usr/bin/e7-shop-reroller-toggle"
+  install -Dm644 "${source_root}/arch/e7-shop-reroller.desktop" \
+    "${pkgdir}/usr/share/applications/e7-shop-reroller.desktop"
+  install -Dm644 "${source_root}/assets/gui/covenant.png" \
+    "${pkgdir}/usr/share/pixmaps/e7-shop-reroller.png"
+  install -Dm644 "${source_root}/LICENSE" \
+    "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+  install -Dm644 "${source_root}/README-LINUX.md" \
+    "${pkgdir}/usr/share/doc/${pkgname}/README-LINUX.md"
+}

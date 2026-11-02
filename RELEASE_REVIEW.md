@@ -48,6 +48,7 @@ validated for Arch packaging. Retain the tested official dependency for v1.0.
 - [ ] Resolve or explicitly decide on artwork redistribution and policy risk.
 - [ ] Select a final commit and create an immutable release tag `v1.0.0`.
 - [ ] Change AUR `source` to the tagged GitHub tarball and calculate its actual SHA-256.
+- [x] Prepare a separate tagged-release AUR PKGBUILD template; its SHA-256 is intentionally unresolved.
 - [ ] Adapt `package()`/`check()` paths to GitHub's archive root directory.
 - [ ] Generate `.SRCINFO` from the final AUR PKGBUILD.
 - [ ] Perform clean-install validation on the final release-source package.

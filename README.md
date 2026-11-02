@@ -10,14 +10,12 @@ account at risk; review those terms before deciding whether to use the app.
 
 **Tested:** Arch Linux, KDE Plasma Wayland, game via Steam/Proton at 1280×720
 and a resized game at approximately 1008×567 on a 4:3 desktop configuration.
-800×480 is unsupported; 1080p and Steam Deck are not yet independently verified. The project is not
-affiliated with the game's publisher. Check its automation policies before use
-and supervise all live runs.
+800×480 is unsupported; 1080p and Steam Deck are not yet independently verified.
+Supervise all live runs.
 
 ## Local Arch installation
 
-This is a **local-source PKGBUILD**, not yet an AUR release. Clone the repository
-and run from the project folder:
+For a local Arch build, clone the repository and run:
 
 ```sh
 sudo pacman -S --needed base-devel
@@ -27,7 +25,7 @@ cd e7-shop-reroller
 bash arch/build-local.sh
 ```
 
-The build script archives only the Linux runtime and essential templates, then
+The build script archives only the Linux runtime and essential files, then
 runs `makepkg -si`. It includes offline regression tests in the **build source**
 and runs them before installing; test files are not installed with the app.
 Other dependencies are managed by pacman. `ydotoold` must
@@ -132,13 +130,22 @@ The runtime uses Python, Tkinter, OpenCV, PipeWire/GStreamer, Spectacle, KWin
 and ydotool. The original recognition templates in `assets/` remain unchanged;
 transparent `assets/gui/` icons are display-only.
 
-Forked from [Solunium/Epic-Seven-E7-Secret-Shop-Refresh](https://github.com/Solunium/Epic-Seven-E7-Secret-Shop-Refresh).
-See `LICENSE` for source licensing. Game artwork belongs to its owners; review
-redistribution rights before publishing to AUR or other catalogs.
+This is a standalone Linux application **based on**
+[Solunium/Epic-Seven-E7-Secret-Shop-Refresh](https://github.com/Solunium/Epic-Seven-E7-Secret-Shop-Refresh),
+not a GitHub fork of that repository. It retains the original project's recognition
+image templates and overall shop-rerolling concept; the KDE Wayland integration,
+window management, GUI, run controls, session statistics and packaging were
+substantially reworked for this project. Credit to the original contributors
+is retained, and their GPL obligations remain applicable to any reused code.
 
-**Not yet publication-ready:** `arch/PKGBUILD` uses a local source archive with
-a skipped checksum. The AUR PKGBUILD must use a pinned release URL and verified
-SHA-256 hash, and `.SRCINFO` must be regenerated before submission. The GPL
-license applies to the code; it does not independently authorize redistribution
-of copyrighted game images. See `RELEASE_REVIEW.md` for unresolved publication
-questions.
+The **application code** is distributed under the GNU General Public License
+version 3 (`GPL-3.0-only`); see [LICENSE](LICENSE). You may use, inspect, modify
+and redistribute covered code under its terms, including making modified
+source available when distributing derivatives. The license does not grant
+rights to third-party game artwork or endorse the use of automation.
+
+`arch/PKGBUILD` is the **local development build** and intentionally uses a
+local archive and `SKIP` checksum. For the tagged v1.0.0 source archive use
+`arch/PKGBUILD.aur.template`, which contains the verified SHA-256 checksum.
+Copy it to `PKGBUILD` when preparing an AUR submission and generate `.SRCINFO`
+with `makepkg --printsrcinfo > .SRCINFO`.

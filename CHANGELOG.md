@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.0.0 — pre-release
+## 1.0.0
 
 - KDE Wayland Secret Shop automation with supervised purchasing and refresh limits.
 - Automatic window activation, positioning, geometry checks and dynamic recognition scaling.
@@ -12,5 +12,3 @@
 - Local Arch PKGBUILD, desktop launcher and XDG user-data storage.
 - Offline tests for geometry, limits, statistics, scaling and synthetic image matching.
 
-This is a development release. Public source provenance and artwork redistribution
-rights must be reviewed before publication.

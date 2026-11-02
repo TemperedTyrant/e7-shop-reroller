@@ -100,10 +100,13 @@ The workflow also supports manual runs under **Actions → Build Arch release
 package → Run workflow**, including for the existing `v1.0.0` release.
 
 After the package builds and offline tests pass, the workflow uploads an
-**unsigned**, downloadable `.pkg.tar.zst` plus a checksum and `.SRCINFO`
-as a workflow artifact (retained for 30 days). It does **not** automatically
-modify the GitHub release or publish an AUR package. GitHub Actions artifacts
-are not a pacman repository and do not provide automatic updates.
+**unsigned** `.pkg.tar.zst` plus its checksum and `.SRCINFO` as an Actions
+artifact (retained for 30 days). A separate job verifies the package checksum
+and attaches the package and checksum to the matching **published GitHub
+release**. It never replaces existing release files automatically; reruns
+keep existing assets. The workflow also runs when a GitHub release is published.
+It does not publish an AUR package. Release downloads are not a pacman
+repository and do not provide automatic updates.
 
 The build uses an official Arch Linux container. CI skips the check that all
 AUR runtime dependencies are installed, because `kdotool` is not in Arch's

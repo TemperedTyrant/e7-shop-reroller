@@ -28,17 +28,32 @@ daemon. Steam Deck and other desktops have not been validated.
 
    Choose the package, **not** the "Source code" ZIP or tarball.
 
-2. **Install `kdotool`**, a required AUR dependency. If you use
-   [paru](https://github.com/Morganamilo/paru), run:
+2. **Install the input tools.** `ydotool` is in Arch's official repositories;
+   `kdotool` comes from the AUR:
 
    ```sh
+   sudo pacman -S --needed ydotool
    paru -S kdotool
    ```
 
-   If you do not have an AUR helper, install `kdotool` using your usual
+   The second command assumes you have [paru](https://github.com/Morganamilo/paru).
+   Otherwise install `kdotool` using your usual
    [AUR build method](https://wiki.archlinux.org/title/Arch_User_Repository).
 
-3. **Verify the package** in the folder containing both downloads
+3. **Enable and start ydotool's user service** (run as your normal user,
+   **without `sudo`**):
+
+   ```sh
+   systemctl --user enable --now ydotool.service
+   systemctl --user status ydotool.service
+   ```
+
+   Confirm it reports **active (running)**. The service launches `ydotoold`
+   and starts automatically when your user session starts. If it fails,
+   inspect `journalctl --user -u ydotool.service` for input-device or
+   permission errors. Avoid running the application or input daemon as root.
+
+4. **Verify the package** in the folder containing both downloads
    (typically `~/Downloads`):
 
    ```sh
@@ -48,7 +63,7 @@ daemon. Steam Deck and other desktops have not been validated.
 
    Confirm the package reports **OK**.
 
-4. **Install the package**:
+5. **Install the package**:
 
    ```sh
    sudo pacman -U ./e7-shop-reroller-1.0.0-1-x86_64.pkg.tar.zst
@@ -56,12 +71,10 @@ daemon. Steam Deck and other desktops have not been validated.
 
    Pacman resolves the other declared dependencies.
 
-5. **Complete first-run setup.** Ensure the `ydotoold` daemon is running and
-   your user can use `ydotool`. Installing the package does **not** start or
-   configure input services automatically. Open **E7 Shop Reroller** from the
-   application menu (or run `e7-shop-reroller`). Use **Window setup &
-   calibration… → Test Window Setup** before a live run, and follow the
-   on-screen guide to configure a global Pause/Resume shortcut.
+6. **Launch and calibrate.** Open **E7 Shop Reroller** from the application
+   menu (or run `e7-shop-reroller`). Use **Window setup & calibration… →
+   Test Window Setup** before a live run, and follow the on-screen guide
+   to configure a global Pause/Resume shortcut.
 
 **Updates:** GitHub release packages are installed manually; they do not
 automatically update through pacman or an AUR helper. Download and install
@@ -73,16 +86,18 @@ so verify its checksum and download it from this project's official release page
 Developers or users who prefer local builds can use:
 
 ```sh
-sudo pacman -S --needed base-devel
+sudo pacman -S --needed base-devel ydotool
 paru -S kdotool
 git clone https://github.com/TemperedTyrant/e7-shop-reroller.git
 cd e7-shop-reroller
 bash arch/build-local.sh
 ```
 
+Before launching a locally built installation, also run
+`systemctl --user enable --now ydotool.service` as described above.
 The script makes a local source archive and runs `makepkg -si`. It runs the
 offline regression tests during packaging; tests are not installed with the
-application. Input permissions and `ydotoold` still require separate setup.
+application.
 
 ## Usage
 

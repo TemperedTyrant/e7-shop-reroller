@@ -234,7 +234,13 @@ def export_shop_details(destination, fmt, session_id=None):
             writer = csv.DictWriter(handle, fieldnames=columns)
             writer.writeheader()
             for row in records:
-                for shop in session_shops(row["session_id"]):
+                shops = session_shops(row["session_id"])
+                if not shops:
+                    writer.writerow({"session_id": row["session_id"],
+                                     "started_utc": row["started_utc"],
+                                     "status": row["status"],
+                                     "outcome": "no_shop_details_recorded"})
+                for shop in shops:
                     common = {"session_id": row["session_id"],
                               "started_utc": row["started_utc"], "status": row["status"],
                               "shop_number": shop["shop_number"],

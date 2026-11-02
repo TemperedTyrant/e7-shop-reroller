@@ -79,4 +79,5 @@ jobs:
             ${{ runner.temp }}/e7-arch-package/package.sha256
             ${{ runner.temp }}/e7-arch-package/.SRCINFO
           if-no-files-found: error
+          include-hidden-files: true
           retention-days: 30

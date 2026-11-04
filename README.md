@@ -187,8 +187,9 @@ currencies.
 see its shop-by-shop results. New sessions store confirmed purchases, detected
 offers and their outcomes, scan durations, and refresh durations. **Detailed
 CSV/JSON** exports include shop information for all runs; the individual
-details window can export only the selected run. CSV has one row per detected offer and a placeholder
-row for empty shops; JSON nests shops and offers within their session.
+details window can export only the selected run. CSV has one row per detected
+offer and a placeholder row for empty shops; JSON nests shops and offers within
+their session.
 
 The SQLite upgrade preserves old summaries, but runs recorded before v1.1 have
 no shop-level data. Their previously saved expected counts are not recalculated.

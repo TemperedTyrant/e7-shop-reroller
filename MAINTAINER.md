@@ -21,9 +21,9 @@ testing is still required for KWin, PipeWire, clicking, and actual game animatio
 ## Arch release builds (GitHub Actions)
 
 **To publish a new version**, first add its release notes to `CHANGELOG.md`
-under an unreleased heading such as `## 1.1.0 — Unreleased` and merge them
+under an unreleased heading such as `## 1.2.0 — Unreleased` and merge them
 into `main`. Then run **Actions → Prepare and publish version → Run workflow**
-from `main` and enter the version **without** `v` (for example `1.1.0`).
+from `main` and enter the version **without** `v` (for example `1.2.0`).
 
 The workflow updates the local and AUR package versions, commits the tagged
 source, computes the GitHub archive SHA256, and pins the verified checksum in
@@ -57,8 +57,8 @@ Wayland session is required for live end-to-end verification.
 
 ## Packaging files and AUR preparation
 
-`arch/PKGBUILD` is the **local development build**and intentionally uses a
-local archive and `SKIP` checksum. For a tagged source archive, use `arch/PKGBUILD.aur.template` from the
-current `main` branch after its checksum is verified against the final tag.
+`arch/PKGBUILD` is the **local development build** and intentionally uses a
+local archive and `SKIP` checksum. For a tagged source archive, use
+`arch/PKGBUILD.aur.template` from the current `main` branch after its checksum is verified against the final tag.
 Copy it to `PKGBUILD` when preparing an AUR submission and generate `.SRCINFO`
 with `makepkg --printsrcinfo > .SRCINFO`.
